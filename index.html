@@ -405,6 +405,26 @@ h1 {
 }
 .error-msg.show { display: block; }
 
+.send-status {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+.send-status-success {
+  background: rgba(45, 122, 90, 0.1);
+  color: #2d7a5a;
+  border: 1px solid rgba(45, 122, 90, 0.3);
+}
+.send-status-error {
+  background: rgba(199, 90, 58, 0.08);
+  color: #c75a3a;
+  border: 1px solid rgba(199, 90, 58, 0.3);
+}
+
 .hint-row {
   font-size: 13px;
   color: var(--ink-mute);
@@ -952,61 +972,90 @@ $('printBtn').addEventListener('click', () => {
   window.print();
 });
 
-// ===== Send via mailto =====
-$('sendBtn').addEventListener('click', () => {
+// ===== Send to backend (Google Apps Script) =====
+// ──────────────────────────────────────────────────────────────────
+// כאן יש להדביק את כתובת ה-Web App של Google Apps Script.
+// הוראות מפורטות בקובץ README.md
+const APPS_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+// ──────────────────────────────────────────────────────────────────
+
+$('sendBtn').addEventListener('click', async () => {
   if (!lastResult) return;
   if (!$('consent').checked || !$('terms').checked) {
     alert('יש לאשר את שתי תיבות הסימון לפני שליחת הנתונים.');
     return;
   }
 
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR')) {
+    alert('המערכת עדיין לא מחוברת לשרת. יש להגדיר את כתובת ה-Apps Script בקוד.');
+    return;
+  }
+
   const r = lastResult;
   const d = r.data;
-  const lines = [
-    'דוח אומדן מענק ימי מחלה בפרישה — עובדי מדינה',
-    '═══════════════════════════════════════════════',
-    '',
-    `תאריך הפקה: ${new Date().toLocaleDateString('he-IL')} ${new Date().toLocaleTimeString('he-IL')}`,
-    '',
-    '── פרטי העובד ──',
-    `שם מלא: ${d.fullName}`,
-    `תעודת זהות: ${d.idNumber}`,
-    `טלפון: ${d.phone}`,
-    `תאריך לידה: ${fmtDate(d.birthDate)}`,
-    `משרד ממשלתי: ${d.ministry}`,
-    '',
-    '── פרטי העסקה ──',
-    `תאריך תחילת העסקה: ${fmtDate(d.startDate)}`,
-    `תאריך פרישה משוער: ${fmtDate(d.retireDate)}`,
-    `תקופת עבודה: ${r.period.years} שנים ו-${r.period.months} חודשים (${r.period.decimalYears.toFixed(2)} שנים עשרוניות)`,
-    '',
-    '── שכר ──',
-    `שכר חודשי ברוטו: ${d.monthlySalary > 0 ? fmtMoney(d.monthlySalary) : '—'}`,
-    `שכר יומי: ${d.dailyWage > 0 ? fmtMoney(d.dailyWage) : 'לא הוזן'}`,
-    `בסיס חישוב בפועל: ${d.dailyWage > 0 ? 'שכר יומי' : 'שכר חודשי'}`,
-    '',
-    '── ימי מחלה ──',
-    `סה״כ ימי מחלה שנצברו: ${r.totalAccrued.toFixed(1)}`,
-    `יתרת ימי מחלה: ${d.sickBalance}`,
-    `ימי מחלה שנוצלו: ${r.used.toFixed(1)}`,
-    `אחוז ניצול: ${r.usagePct.toFixed(1)}%`,
-    '',
-    '── תוצאת החישוב ──',
-    `מדרגת זכאות: ${r.tier.label}`,
-    `סכום מענק משוער: ${r.tier.eligible ? fmtMoney(r.grant) : 'אין זכאות'}`,
-    '',
-    '═══════════════════════════════════════════════',
-    'הסתייגות: החישוב המוצג הוא אומדן בלבד ואינו מהווה ייעוץ מס, ייעוץ פנסיוני או אישור זכאות רשמי.',
-    'יש לאמת את הנתונים מול תלוש השכר, אישור המעסיק וחשבות השכר לפני קבלת החלטה.',
-    '',
-    'אישור המשתמש: הפרטים נמסרו מרצון, והובן שהחישוב הוא אומדן בלבד.',
-  ];
 
-  const subject = `אומדן מענק ימי מחלה — ${d.fullName} (ת.ז. ${d.idNumber})`;
-  const body = lines.join('\r\n');
-  const mailto = `mailto:office@alafi-ins.co.il?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailto;
+  const payload = {
+    submittedAt: new Date().toISOString(),
+    fullName: d.fullName,
+    idNumber: d.idNumber,
+    phone: d.phone,
+    birthDate: d.birthDate,
+    ministry: d.ministry,
+    startDate: d.startDate,
+    retireDate: d.retireDate,
+    sickBalance: d.sickBalance,
+    monthlySalary: d.monthlySalary,
+    dailyWage: d.dailyWage,
+    years: r.period.years,
+    months: r.period.months,
+    decimalYears: Number(r.period.decimalYears.toFixed(2)),
+    totalAccrued: Number(r.totalAccrued.toFixed(1)),
+    used: Number(r.used.toFixed(1)),
+    usagePct: Number(r.usagePct.toFixed(1)),
+    tier: r.tier.label,
+    eligible: r.tier.eligible,
+    grant: r.tier.eligible ? Math.round(r.grant) : 0,
+    consentApproved: true,
+    termsApproved: true,
+  };
+
+  const sendBtn = $('sendBtn');
+  const originalText = sendBtn.textContent;
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'שולח...';
+
+  try {
+    // Use text/plain to avoid CORS preflight on Apps Script
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors',
+    });
+
+    // With no-cors we can't read the response, but if no error was thrown
+    // the request reached the server.
+    showSendStatus('success', 'הנתונים נשלחו בהצלחה. תודה!');
+    sendBtn.textContent = '✓ נשלח';
+  } catch (err) {
+    console.error('Send error:', err);
+    showSendStatus('error', 'אירעה שגיאה בשליחה. נא לנסות שוב או ליצור קשר ישירות.');
+    sendBtn.disabled = false;
+    sendBtn.textContent = originalText;
+  }
 });
+
+function showSendStatus(type, msg) {
+  let statusEl = document.getElementById('sendStatus');
+  if (!statusEl) {
+    statusEl = document.createElement('div');
+    statusEl.id = 'sendStatus';
+    statusEl.className = 'send-status';
+    $('sendBtn').parentElement.parentElement.appendChild(statusEl);
+  }
+  statusEl.className = `send-status send-status-${type}`;
+  statusEl.textContent = msg;
+}
 
 // Allow Enter to submit form
 document.querySelectorAll('input').forEach(input => {
