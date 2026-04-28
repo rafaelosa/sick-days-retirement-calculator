@@ -1,0 +1,29 @@
+© אלפי ביטוח ופיננסים. כל הזכויות שמורות.
+© Alafi Insurance and Finance. All Rights Reserved.
+
+תנאי שימוש
+═══════════════════════════════════════════════════════════════
+
+הקוד והתוכן בריפוזיטורי זה הם רכושה הבלעדי של אלפי ביטוח ופיננסים.
+
+מותר:
+  • לצפות בקוד למטרות לימוד והתרשמות אישית
+
+אסור ללא אישור בכתב מבעלי הזכויות:
+  • להעתיק, לשכפל או להפיץ את הקוד או חלקים ממנו
+  • להשתמש בקוד למטרות מסחריות
+  • לפרסם גרסאות נגזרות
+  • להסיר או לשנות את המיתוג של אלפי ביטוח ופיננסים
+  • להסיר או לשנות את הקישור לתקנון של Lemoney
+
+לבירורים ובקשות שימוש: office@alafi-ins.co.il
+
+ENGLISH SUMMARY
+═══════════════════════════════════════════════════════════════
+
+This software is the exclusive property of Alafi Insurance and Finance.
+All rights reserved. No part of this code may be copied, reproduced,
+distributed, or used for commercial purposes without prior written
+permission from the copyright holder.
+
+Contact: office@alafi-ins.co.il
